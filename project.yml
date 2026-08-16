@@ -1,0 +1,138 @@
+# XcodeGen spec — run `xcodegen generate` to produce Fairway.xcodeproj.
+#
+# The .xcodeproj is deliberately not committed: it is a generated artefact, it merges
+# badly, and regenerating it from this file is a one-line command. See docs/BUILD.md.
+
+name: Fairway
+
+options:
+  bundleIdPrefix: nz.fairway
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    # Set DEVELOPMENT_TEAM here, or pick your team in Xcode's Signing & Capabilities
+    # tab once after generating. Left blank so the project opens without a team.
+    DEVELOPMENT_TEAM: ""
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+
+targets:
+
+  # ---------------------------------------------------------------- iPhone app
+  Fairway:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/Shared
+      - path: Sources/iOS
+        # The plist is generated from `info:` below; excluded so it isn't also copied
+        # into the bundle as a stray resource.
+        excludes:
+          - "Resources/Info.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: nz.fairway.golf
+        PRODUCT_NAME: Fairway
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      # Embedding the watch app is what makes it install alongside the phone app.
+      - target: FairwayWatch
+        embed: true
+    info:
+      path: Sources/iOS/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Fairway
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIBackgroundModes:
+          # Keeps the round tracking while the phone is in a bag pocket.
+          - location
+        NSLocationWhenInUseUsageDescription: >-
+          Fairway uses your location to measure the distance to the green and to record
+          where each shot was played from.
+        NSLocationAlwaysAndWhenInUseUsageDescription: >-
+          Fairway keeps tracking during a round so distances stay live while your phone
+          is in your bag.
+        NSMotionUsageDescription: >-
+          Used to improve distance accuracy while you walk between shots.
+
+  # ------------------------------------------------------------ Apple Watch app
+  FairwayWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: Sources/Shared
+      - path: Sources/Watch
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/FairwayWatch.entitlements"
+    settings:
+      base:
+        # A watch app's bundle id must be the phone app's id plus a suffix.
+        PRODUCT_BUNDLE_IDENTIFIER: nz.fairway.golf.watchkitapp
+        PRODUCT_NAME: Fairway
+        CODE_SIGN_ENTITLEMENTS: Sources/Watch/Resources/FairwayWatch.entitlements
+        WATCHOS_DEPLOYMENT_TARGET: "10.0"
+    info:
+      path: Sources/Watch/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Fairway
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: nz.fairway.golf
+        # The watch app is usable on its own once courses have been synced across.
+        WKRunsIndependentlyOfCompanionApp: true
+        UIBackgroundModes:
+          - location
+          # Required for the HKWorkoutSession that keeps the app alive for a full round.
+          - workout-processing
+        NSLocationWhenInUseUsageDescription: >-
+          Fairway uses your location to measure the distance to the green and to record
+          where each shot was played from.
+        NSHealthShareUsageDescription: >-
+          Fairway reads workout metrics so it can show your round's duration and distance.
+        NSHealthUpdateUsageDescription: >-
+          Fairway records your round as a golf workout. This is what keeps GPS running
+          for the whole round instead of stopping when your wrist drops.
+
+  # -------------------------------------------------------------- Logic tests
+  # Compiles the shared sources directly rather than testing through the app, so the
+  # geometry and statistics can be exercised without a host application.
+  FairwayTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Sources/Shared
+      - path: Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: nz.fairway.golf.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Fairway:
+    build:
+      targets:
+        Fairway: all
+        FairwayWatch: all
+    test:
+      targets:
+        - FairwayTests
+    run:
+      config: Debug
+
+  FairwayWatch:
+    build:
+      targets:
+        FairwayWatch: all
+    run:
+      config: Debug
