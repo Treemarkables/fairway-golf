@@ -70,7 +70,11 @@ struct Bag: Codable, Hashable, Sendable {
 
     /// A conventional 14-club set, edited in Settings → My Bag.
     /// Nothing downstream assumes these specific clubs exist.
-    static var standard: Bag {
+    ///
+    /// Deliberately a `let`: club identity has to be stable, because shots reference
+    /// clubs by ID. Rebuilding the set on every access would mint fresh UUIDs and
+    /// orphan every shot already logged against the previous copy.
+    static let standard: Bag = {
         var order = 0
         func next() -> Int { defer { order += 1 }; return order }
         return Bag(clubs: [
@@ -89,5 +93,5 @@ struct Bag: Codable, Hashable, Sendable {
             Club(abbreviation: "LW", name: "Lob Wedge", kind: .wedge, loft: 60, sortOrder: next()),
             Club(abbreviation: "Pt", name: "Putter", kind: .putter, sortOrder: next())
         ])
-    }
+    }()
 }

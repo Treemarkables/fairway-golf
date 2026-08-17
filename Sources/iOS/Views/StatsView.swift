@@ -111,7 +111,7 @@ struct ClubStatRow: View {
                 Text(statistics.club.name)
                 Text("\(statistics.sampleCount) shot\(statistics.sampleCount == 1 ? "" : "s")")
                     .font(.caption)
-                    .foregroundStyle(statistics.isReliable ? .secondary : .orange)
+                    .foregroundStyle(statistics.isReliable ? Color.secondary : Color.orange)
             }
 
             Spacer()

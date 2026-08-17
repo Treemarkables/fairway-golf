@@ -47,7 +47,7 @@ struct WatchStartRoundView: View {
                                     .lineLimit(2)
                                 Text("\(course.mappedHoleCount)/\(course.holes.count) greens")
                                     .font(.caption2)
-                                    .foregroundStyle(course.isFullyMapped ? .secondary : .orange)
+                                    .foregroundStyle(course.isFullyMapped ? Color.secondary : Color.orange)
                             }
                         }
                     }

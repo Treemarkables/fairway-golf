@@ -82,7 +82,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
             return
         }
         manager.allowsBackgroundLocationUpdates = true
+        #if !os(watchOS)
         manager.pausesLocationUpdatesAutomatically = false
+        #endif
         manager.startUpdatingLocation()
         isTracking = true
     }

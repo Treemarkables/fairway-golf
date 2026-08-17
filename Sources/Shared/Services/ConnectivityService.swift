@@ -141,7 +141,7 @@ final class ConnectivityService: NSObject, WCSessionDelegate {
 
     func session(
         _ session: WCSession,
-        activationDidComplete state: WCSessionActivationState,
+        activationDidCompleteWith activationState: WCSessionActivationState,
         error: Error?
     ) {
         Task { @MainActor in
@@ -149,7 +149,7 @@ final class ConnectivityService: NSObject, WCSessionDelegate {
             #if os(iOS)
             self.isPaired = session.isPaired && session.isWatchAppInstalled
             #else
-            self.isPaired = state == .activated
+            self.isPaired = activationState == .activated
             #endif
         }
     }
